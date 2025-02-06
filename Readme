@@ -1,3 +1,5 @@
-# Nemo
+#Nemo
 
-A warehouse robot in a simulated environment (Gazebo) picks up and delivers packages based on real-time on-chain microtransactions. It uses Gazebo for simulation, Coinbase Agent kit for Transaction handling, Arbitrum for L2 Microtransactions and hosted as a TEE in Autonome.
+A warehouse robot in a simulated environment (Gazebo) picks up and delivers packages based on real-time on-chain microtransactions. 
+
+It uses Gazebo for simulation, Coinbase Agent kit for Transaction handling, Arbitrum for L2 Microtransactions and hosted as a TEE in Autonome.
