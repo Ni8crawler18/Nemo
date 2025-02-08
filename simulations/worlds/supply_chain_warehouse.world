@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<sdf version="1.7">
+<world name="supply_chain_warehouse">
+  <!-- Lighting -->
+  <include>
+    <uri>model://sun</uri>
+  </include>
+  
+  <!-- Floor -->
+  <model name="floor">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>20 20</size>
+          </plane>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>20 20</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+  
+  <!-- Shelves (using simple boxes) -->
+  <model name="shelf_row_1">
+    <pose>3 0 0.5 0 0 0</pose>
+    <static>true</static>
+    <link name="link">
+      <visual name="visual">
+        <geometry>
+          <box>
+            <size>2 4 1</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Blue</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+  
+  <!-- TurtleBot3 -->
+  <include>
+    <uri>model://turtlebot3_burger</uri>
+    <pose>0 0 0.1 0 0 0</pose>
+  </include>
+</world>
+</sdf>
