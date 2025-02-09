@@ -1,33 +1,25 @@
 {
-  "name": "",
+  "name": "nemo",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "type": "module",
-  "license": "AGPL-version-3.0",
-  "private": false,
-  "engines": {
-    "node": ">= 14.0.0",
-    "npm": ">= 6.0.0"
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "homepage": "",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/Ni8crawler18/Nemo.git"
   },
-  "bugs": "",
   "keywords": [],
-  "author": {
-    "name": "",
-    "email": "",
-    "url": ""
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ni8crawler18/Nemo/issues"
   },
-  "contributors": [],
-  "scripts": {
-    "dev": "",
-    "test": ""
-  },
+  "homepage": "https://github.com/Ni8crawler18/Nemo#readme",
+  "description": "",
   "dependencies": {
-    "nillion-sv-wrappers": "^1.0.9"
+    "nillion-sv-wrappers": "^1.0.9",
+    "uuid": "^11.0.5"
   }
 }
