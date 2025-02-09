@@ -164,15 +164,3 @@ curl -X POST http://localhost:3001/coinbase/transaction/{schema-id} \
 
 ## 📝 **License**
 This project is licensed under the **MIT License**.
-
-## 🤝 **Contributors**
-- **Venkatesh R** (@ni8crawler18), built for Agentic Ethereum 2025
-
-
-For any queries, raise an issue on **GitHub**.
-
----
-
-🎉 **Happy Coding with Nemo!** 🚀
-
-
