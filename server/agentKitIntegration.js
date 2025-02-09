@@ -1,7 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
+import dotenv from 'dotenv';
 
+dotenv.config();
 const app = express();
 const PORT = 3001;
 
@@ -9,75 +12,128 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
-// In-memory storage for agent data
-const agentDataStore = [];
+// Nillion Nodes (Example)
+const NILLION_NODES = [
+    "https://nildb-zy8u.nillion.network",
+    "https://nildb-rl5g.nillion.network",
+    "https://nildb-lpjp.nillion.network"
+];
+
+// Function to store agent data on Nillion
+async function storeOnNillion(data) {
+    try {
+        const node = NILLION_NODES[Math.floor(Math.random() * NILLION_NODES.length)];
+        const response = await axios.post(`${node}/store`, data);
+        return response.data;
+    } catch (error) {
+        console.error("Nillion Storage Error:", error.response?.data || error.message);
+        throw new Error("Failed to store data on Nillion");
+    }
+}
+
+// Function to retrieve agent data from Nillion
+async function retrieveFromNillion(schema) {
+    try {
+        const node = NILLION_NODES[Math.floor(Math.random() * NILLION_NODES.length)];
+        const response = await axios.get(`${node}/retrieve?schema=${schema}`);
+        return response.data;
+    } catch (error) {
+        console.error("Nillion Retrieval Error:", error.response?.data || error.message);
+        throw new Error("Failed to retrieve data from Nillion");
+    }
+}
 
 /**
  * @route   POST /store-agent-data
- * @desc    Stores agent data with a valid UUID schema
+ * @desc    Stores agent data on Nillion
  */
-app.post('/store-agent-data', (req, res) => {
+app.post('/store-agent-data', async (req, res) => {
     try {
-        const { agent_name, api_key, task_log, schema } = req.body;
+        const { _id, agent_name, api_key, task_log } = req.body;
 
-        // Validate required fields
-        if (!agent_name || !api_key || !task_log || !Array.isArray(task_log)) {
+        if (!_id || !agent_name || !api_key || !Array.isArray(task_log) || task_log.length < 1) {
             return res.status(400).json({ error: "Invalid request format", message: "Ensure all required fields are provided" });
         }
 
-        // Validate or generate UUID for schema
-        const validSchema = schema && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(schema) 
-            ? schema 
-            : uuidv4();
+        const schema = uuidv4(); // Generate a schema UUID for organization
 
-        // Store agent data
-        const newAgentData = {
-            id: uuidv4(),
-            agent_name,
-            api_key,
-            schema: validSchema,
-            task_log
-        };
+        const agentData = { _id, agent_name, api_key, schema, task_log };
 
-        agentDataStore.push(newAgentData);
+        // Store data on Nillion
+        await storeOnNillion(agentData);
 
-        res.json({ success: true, message: "Agent data stored successfully", data: newAgentData });
+        res.json({ success: true, message: "Agent data stored successfully on Nillion", schema });
     } catch (error) {
         res.status(500).json({ error: "Internal server error", message: error.message });
     }
 });
 
 /**
- * @route   GET /get-agent-data
- * @desc    Retrieves stored agent data
+ * @route   GET /get-agent-data/:schema
+ * @desc    Retrieves stored agent data from Nillion
  */
-app.get('/get-agent-data', (req, res) => {
+app.get('/get-agent-data/:schema', async (req, res) => {
     try {
-        if (!agentDataStore.length) {
+        const agentData = await retrieveFromNillion(req.params.schema);
+        if (!agentData) {
             return res.status(404).json({ error: "No data found", message: "No agent data available" });
         }
-
-        res.json({ success: true, agentData: agentDataStore });
+        res.json({ success: true, agentData });
     } catch (error) {
         res.status(500).json({ error: "Error retrieving agent data", message: error.message });
     }
 });
 
 /**
- * @route   GET /get-agent-data/:id
- * @desc    Retrieves specific agent data by ID
+ * @route   GET /coinbase/account/:schema
+ * @desc    Retrieves Coinbase account details using API key stored in Nillion
  */
-app.get('/get-agent-data/:id', (req, res) => {
+app.get('/coinbase/account/:schema', async (req, res) => {
     try {
-        const agent = agentDataStore.find(a => a.id === req.params.id);
-        
+        const agent = await retrieveFromNillion(req.params.schema);
         if (!agent) {
-            return res.status(404).json({ error: "Agent not found", message: "No agent data available for given ID" });
+            return res.status(404).json({ error: "Agent not found", message: "No agent data available for given schema" });
         }
 
-        res.json({ success: true, agentData: agent });
+        const response = await axios.get("https://api.coinbase.com/v2/accounts", {
+            headers: { Authorization: `Bearer ${agent.api_key}` }
+        });
+
+        res.json({ success: true, coinbaseData: response.data });
     } catch (error) {
-        res.status(500).json({ error: "Error retrieving agent data", message: error.message });
+        res.status(500).json({ error: "Failed to retrieve Coinbase data", message: error.response?.data || error.message });
+    }
+});
+
+/**
+ * @route   POST /coinbase/transaction/:schema
+ * @desc    Executes a Coinbase transaction using stored API key
+ */
+app.post('/coinbase/transaction/:schema', async (req, res) => {
+    try {
+        const { to, amount, currency } = req.body;
+        const agent = await retrieveFromNillion(req.params.schema);
+
+        if (!agent) {
+            return res.status(404).json({ error: "Agent not found", message: "No agent data available for given schema" });
+        }
+
+        if (!to || !amount || !currency) {
+            return res.status(400).json({ error: "Invalid request format", message: "Missing transaction details" });
+        }
+
+        const response = await axios.post("https://api.coinbase.com/v2/accounts/primary/transactions", {
+            type: "send",
+            to,
+            amount,
+            currency
+        }, {
+            headers: { Authorization: `Bearer ${agent.api_key}` }
+        });
+
+        res.json({ success: true, transactionData: response.data });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to execute transaction", message: error.response?.data || error.message });
     }
 });
 

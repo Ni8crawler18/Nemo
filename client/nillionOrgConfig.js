@@ -1,5 +1,3 @@
-
-
 export const orgConfig = {
     orgCredentials: {
       secretKey: 'a786abe58f933e190d01d05b467838abb1e391007a674d8a3aef106e15a0bf5a',
